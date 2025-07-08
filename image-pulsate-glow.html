@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Glow Settings & Custom Image</title>
+  <style>
+    /* — Reset & Layout — */
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #111;
+      color: #fff;
+      font-family: sans-serif;
+    }
+
+    /* — CSS Variables & Glow — */
+    :root {
+      --c1: #00ffea;
+      --c2: #6200ff;
+      --c3: #d03221;
+      --c4: #fff380;
+      --pulse-time: 2s;
+      --shadow-width: 4px;
+      --shadow-min: calc(var(--shadow-width) / 2);
+      --shadow-max: calc(var(--shadow-width) * 2);
+    }
+
+    .glow-logo {
+      width: 300px;
+      filter:
+        drop-shadow(0 0 var(--shadow-min) var(--c1))
+        drop-shadow(0 0 calc(var(--shadow-min)*3) var(--c2))
+        drop-shadow(0 0 calc(var(--shadow-min)*5) var(--c3))
+        drop-shadow(0 0 calc(var(--shadow-min)*7) var(--c4));
+      animation: pulseGlow var(--pulse-time) ease-in-out infinite;
+    }
+    @keyframes pulseGlow {
+      0%,100% {
+        filter:
+          drop-shadow(0 0 var(--shadow-min) var(--c1))
+          drop-shadow(0 0 calc(var(--shadow-min)*3) var(--c2))
+          drop-shadow(0 0 calc(var(--shadow-min)*5) var(--c3))
+          drop-shadow(0 0 calc(var(--shadow-min)*7) var(--c4));
+      }
+      50% {
+        filter:
+          drop-shadow(0 0 var(--shadow-max) var(--c1))
+          drop-shadow(0 0 calc(var(--shadow-max)*2) var(--c2))
+          drop-shadow(0 0 calc(var(--shadow-max)*3) var(--c3))
+          drop-shadow(0 0 calc(var(--shadow-max)*4) var(--c4));
+      }
+    }
+
+    /* — Settings Card — */
+    .settings-card {
+      position: fixed; top: 20px; right: 20px;
+      width: 260px; padding: 12px;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(6px);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      font-size: 14px; line-height: 1.4; z-index: 10;
+    }
+    .settings-card h2 { margin:0 0 8px; font-size:16px }
+    .settings-card label { display:block; margin:6px 0 2px }
+    .settings-card input[type="color"],
+    .settings-card input[type="range"],
+    .settings-card input[type="file"] {
+      width:100%; cursor:pointer;
+    }
+    .settings-card input[type="color"],
+    .settings-card input[type="file"] {
+      height:30px; border:none; padding:0;
+    }
+    .settings-card .range-value {
+      text-align:right; font-size:13px;
+      margin-top:-20px; margin-bottom:8px;
+    }
+    .settings-card button {
+      width:100%; padding:6px; margin-top:8px;
+      background:#222; border:1px solid #444;
+      border-radius:4px; color:#fff; cursor:pointer;
+    }
+    .settings-card button:hover { background:#333 }
+
+    /* — Export Modal — */
+    .modal {
+      display:none; position:fixed; z-index:20;
+      inset:0; background:rgba(0,0,0,0.7);
+      align-items:center; justify-content:center;
+    }
+    .modal-content {
+      background:#222; padding:16px; border-radius:8px;
+      width:90%; max-width:500px; color:#fff;
+      position:relative;
+    }
+    .modal-content .close {
+      position:absolute; right:12px; top:8px;
+      font-size:20px; cursor:pointer;
+    }
+    .modal-content .tabs {
+      display:flex; margin-bottom:12px;
+    }
+    .modal-content .tabs button {
+      flex:1; padding:6px; margin-right:4px;
+      background:#333; border:none; color:#fff; cursor:pointer;
+      border-radius:4px 4px 0 0;
+    }
+    .modal-content .tabs button.active {
+      background:#555;
+    }
+    .modal-content pre {
+      background:#111; padding:12px;
+      border-radius:4px; max-height:300px;
+      overflow:auto; white-space:pre-wrap;
+    }
+    .modal-content pre.hidden { display:none; }
+  </style>
+</head>
+<body>
+
+  <!-- Settings UI -->
+  <div class="settings-card">
+    <h2>Glow & Image Settings</h2>
+
+    <label for="imageUpload">Upload Image</label>
+    <input type="file" id="imageUpload" accept="image/*">
+
+    <label for="color1">Color 1</label>
+    <input type="color" id="color1" value="#ff8c00">
+
+    <label for="color2">Color 2</label>
+    <input type="color" id="color2" value="#ffb300">
+
+    <label for="color3">Color 3</label>
+    <input type="color" id="color3" value="#ffd600">
+
+    <label for="color4">Color 4</label>
+    <input type="color" id="color4" value="#fff380">
+
+    <label for="pulseTime">Pulse Duration (s)</label>
+    <input type="range" id="pulseTime" min="0.5" max="10" step="0.1" value="2">
+    <div class="range-value" id="pulseValue">2.0s</div>
+
+    <label for="shadowWidth">Shadow Width (px)</label>
+    <input type="range" id="shadowWidth" min="0" max="20" step="1" value="4">
+    <div class="range-value" id="shadowValue">4px</div>
+
+    <button id="exportBtn">Export</button>
+  </div>
+
+  <!-- Logo / Custom Image -->
+  <img src="logo1.png" alt="Glowing Logo" class="glow-logo" id="glowImage" />
+
+  <!-- Export Modal -->
+  <div class="modal" id="exportModal">
+    <div class="modal-content">
+      <span class="close" id="closeModal">&times;</span>
+      <div class="tabs">
+        <button id="tabSettings" class="active">Settings</button>
+        <button id="tabHTML">Export HTML</button>
+      </div>
+      <pre id="settingsText"></pre>
+      <pre id="htmlText" class="hidden"></pre>
+    </div>
+  </div>
+
+
+  <script>
+    //— Helpers —//
+    const setVar = (name, val) =>
+      document.documentElement.style.setProperty(name, val);
+
+    //— State —//
+    let imgFileName = 'logo1.png';
+
+    //— Image Upload —//
+    document.getElementById('imageUpload').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      imgFileName = file.name;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        document.getElementById('glowImage').src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    //— Color Pickers —//
+    ['color1','color2','color3','color4'].forEach((id,i) => {
+      document.getElementById(id).addEventListener('input', e => {
+        setVar(`--c${i+1}`, e.target.value);
+      });
+    });
+
+    //— Pulse Duration —//
+    const pulse = document.getElementById('pulseTime');
+    const pulseLabel = document.getElementById('pulseValue');
+    pulse.addEventListener('input', () => {
+      const v = parseFloat(pulse.value).toFixed(1)+'s';
+      setVar('--pulse-time', v);
+      pulseLabel.textContent = v;
+    });
+
+    //— Shadow Width —//
+    const sh = document.getElementById('shadowWidth');
+    const shLabel = document.getElementById('shadowValue');
+    sh.addEventListener('input', () => {
+      const v = sh.value+'px';
+      setVar('--shadow-width', v);
+      shLabel.textContent = v;
+    });
+
+    //— Modal & Tabs —//
+    const exportBtn  = document.getElementById('exportBtn');
+    const modal      = document.getElementById('exportModal');
+    const closeModal = document.getElementById('closeModal');
+    const preSettings= document.getElementById('settingsText');
+    const preHTML    = document.getElementById('htmlText');
+    const tabSet     = document.getElementById('tabSettings');
+    const tabHTML    = document.getElementById('tabHTML');
+
+    function showSettingsTab() {
+      tabSet.classList.add('active');
+      tabHTML.classList.remove('active');
+      preSettings.classList.remove('hidden');
+      preHTML.classList.add('hidden');
+    }
+    function showHTMLTab() {
+      tabHTML.classList.add('active');
+      tabSet.classList.remove('active');
+      preHTML.classList.remove('hidden');
+      preSettings.classList.add('hidden');
+    }
+
+    tabSet.addEventListener('click', showSettingsTab);
+    tabHTML.addEventListener('click', showHTMLTab);
+
+    //— Build Exports & Open Modal —//
+    exportBtn.addEventListener('click', () => {
+      const s = getComputedStyle(document.documentElement);
+      const cfg = {
+        color1:       s.getPropertyValue('--c1').trim(),
+        color2:       s.getPropertyValue('--c2').trim(),
+        color3:       s.getPropertyValue('--c3').trim(),
+        color4:       s.getPropertyValue('--c4').trim(),
+        pulseTime:    s.getPropertyValue('--pulse-time').trim(),
+        shadowWidth:  s.getPropertyValue('--shadow-width').trim()
+      };
+      // JSON settings
+      preSettings.textContent = JSON.stringify(cfg, null, 2);
+
+      // HTML snippet
+      const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Glowing Logo</title>
+  <style>
+    :root {
+      --c1: ${cfg.color1};
+      --c2: ${cfg.color2};
+      --c3: ${cfg.color3};
+      --c4: ${cfg.color4};
+      --pulse-time: ${cfg.pulseTime};
+      --shadow-width: ${cfg.shadowWidth};
+      --shadow-min: calc(var(--shadow-width)/2);
+      --shadow-max: calc(var(--shadow-width)*2);
+    }
+    .glow-logo {
+      width: 300px;
+      filter:
+        drop-shadow(0 0 var(--shadow-min) var(--c1))
+        drop-shadow(0 0 calc(var(--shadow-min)*3) var(--c2))
+        drop-shadow(0 0 calc(var(--shadow-min)*5) var(--c3))
+        drop-shadow(0 0 calc(var(--shadow-min)*7) var(--c4));
+      animation: pulseGlow var(--pulse-time) ease-in-out infinite;
+    }
+    @keyframes pulseGlow {
+      0%,100% {
+        filter:
+          drop-shadow(0 0 var(--shadow-min) var(--c1))
+          drop-shadow(0 0 calc(var(--shadow-min)*3) var(--c2))
+          drop-shadow(0 0 calc(var(--shadow-min)*5) var(--c3))
+          drop-shadow(0 0 calc(var(--shadow-min)*7) var(--c4));
+      }
+      50% {
+        filter:
+          drop-shadow(0 0 var(--shadow-max) var(--c1))
+          drop-shadow(0 0 calc(var(--shadow-max)*2) var(--c2))
+          drop-shadow(0 0 calc(var(--shadow-max)*3) var(--c3))
+          drop-shadow(0 0 calc(var(--shadow-max)*4) var(--c4));
+      }
+    }
+  </style>
+</head>
+<body style="display:flex;align-items:center;justify-content:center;background:#111;height:100vh;margin:0">
+  <img src="${imgFileName}" alt="Glowing Logo" class="glow-logo" />
+</body>
+</html>`;
+      preHTML.textContent = html;
+
+      showSettingsTab();
+      modal.style.display = 'flex';
+    });
+
+    closeModal.addEventListener('click', () => modal.style.display = 'none');
+    window.addEventListener('click', e => {
+      if (e.target === modal) modal.style.display = 'none';
+    });
+  </script>
+</body>
+</html>
