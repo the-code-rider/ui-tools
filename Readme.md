@@ -1,6 +1,10 @@
-# Interactive Glow Logo Editor
+# image-pulsate-glow.html  : Interactive Glow Logo Editor
 
 A lightweight, self‑contained HTML/CSS/JS tool that lets you apply and preview a pulsing, multi‑tone drop‑shadow glow around any image—or your star logo—then export your settings or a standalone HTML snippet.
+
+
+
+https://github.com/user-attachments/assets/aa929bde-ab68-4966-9682-6d5968cf26ab
 
 ## Features
 
